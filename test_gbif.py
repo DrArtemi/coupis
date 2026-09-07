@@ -1,5 +1,8 @@
-from src.biodiversity_explorer import SpeciesResolver
-from src.biodiversity_explorer.gbif import GBIFOccurrenceClient
+from coupis import SpeciesResolver
+from coupis.db.engine import SessionFactory
+from coupis.gbif import GBIFOccurrenceClient
+from coupis.services.occurrence_ingestion import OccurrenceIngestionService
+from coupis.services.occurrence_search import OccurrenceSearchService
 
 if __name__ == "__main__":
     resolver = SpeciesResolver()
@@ -8,12 +11,15 @@ if __name__ == "__main__":
     if result is None:
         raise LookupError("No matching GBIF taxon found")
 
-    print(result)
 
-    occurrence_client = GBIFOccurrenceClient()
-    occurrence_results = occurrence_client.search(
+    occurrence_service = OccurrenceSearchService(gbif_client=GBIFOccurrenceClient())
+    occurrence_results = occurrence_service.search(
         result.taxon_key,
-        max_records=1,
+        region_slug="pyrenees",
+        region_version=1,
+        max_records=100
     )
 
-    print(occurrence_results)
+    with SessionFactory.begin() as session:
+        occurrence_ingestion_service = OccurrenceIngestionService.from_session(session)
+        res = occurrence_ingestion_service.ingest(occurrence_results)

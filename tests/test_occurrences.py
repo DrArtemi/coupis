@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import patch
 
-from src.biodiversity_explorer.gbif import GBIFOccurrenceClient, GbifOccurrence
+from coupis.gbif import GBIFOccurrenceClient, GbifOccurrence
+from coupis.gbif import occurrences as occurrences_module
 
 
 class FakeOccurrencesAPI:
@@ -26,7 +28,7 @@ class GBIFOccurrenceClientTests(unittest.TestCase):
                             "decimalLongitude": 0.5,
                             "eventDate": "2024-05-02",
                             "coordinateUncertaintyInMeters": 25,
-                            "datasetKey": "dataset-id",
+                            "datasetKey": "6c2dcbb0-6f9e-11de-8226-b8a03c50a862",
                             "datasetTitle": "Bird observations",
                             "license": "http://creativecommons.org/licenses/by/4.0/",
                         }
@@ -46,14 +48,13 @@ class GBIFOccurrenceClientTests(unittest.TestCase):
                 },
             ]
         )
-        client = GBIFOccurrenceClient(occurrences_api=api)
-
-        result = client.search(
-            2473577,
-            geometry="POLYGON((0 42,1 42,1 43,0 43,0 42))",
-            page_size=1,
-            country="FR",
-        )
+        with patch.object(occurrences_module, "occurrences", api):
+            result = GBIFOccurrenceClient().search(
+                2473577,
+                geometry="POLYGON((0 42,1 42,1 43,0 43,0 42))",
+                page_size=1,
+                country="FR",
+            )
 
         self.assertEqual(len(result), 2)
         self.assertIsInstance(result[0], GbifOccurrence)
@@ -81,10 +82,11 @@ class GBIFOccurrenceClientTests(unittest.TestCase):
             ]
         )
 
-        result = GBIFOccurrenceClient(occurrences_api=api).search(
-            2473577,
-            max_records=1,
-        )
+        with patch.object(occurrences_module, "occurrences", api):
+            result = GBIFOccurrenceClient().search(
+                2473577,
+                max_records=1,
+            )
 
         self.assertEqual(len(result), 1)
         self.assertEqual(api.calls[0]["limit"], 1)

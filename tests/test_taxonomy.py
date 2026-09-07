@@ -1,6 +1,6 @@
 import unittest
 
-from src.biodiversity_explorer.taxonomy import SpeciesResolver
+from coupis.taxonomy import SpeciesResolver
 
 
 class FakeWikidataClient:

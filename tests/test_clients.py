@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import patch
 
-from src.biodiversity_explorer.gbif import client as gbif_client_module
-from src.biodiversity_explorer.gbif import GBIFClient
-from src.biodiversity_explorer.wikidata import WikidataClient
+from coupis.gbif import client as gbif_client_module
+from coupis.gbif import GBIFClient
+from coupis.wikidata import WikidataClient
 
 
 class FakeResponse:

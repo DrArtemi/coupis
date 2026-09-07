@@ -27,3 +27,6 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["coupis*"]
+
+[tool.setuptools.package-data]
+"coupis.regions.data" = ["*.wkt"]
