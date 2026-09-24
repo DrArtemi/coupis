@@ -65,6 +65,20 @@ class OccurrencePageResponse(BaseModel):
     offset: int = Field(ge=0)
 
 
+class OccurrenceTemporalExtentResponse(BaseModel):
+    observed_from: datetime | None
+    observed_until: datetime | None
+
+
+class OccurrenceYearCountResponse(BaseModel):
+    year: int
+    count: int = Field(ge=0)
+
+
+class OccurrenceYearlyCountsResponse(BaseModel):
+    items: list[OccurrenceYearCountResponse]
+
+
 class SpeciesResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

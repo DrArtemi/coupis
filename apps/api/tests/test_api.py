@@ -42,6 +42,14 @@ class FakeOccurrenceRepository:
         self.calls.append(filters)
         return self.result
 
+    def temporal_extent(self, **filters):
+        self.calls.append(filters)
+        return datetime(1998, 4, 3), datetime(2024, 11, 8, 14, 30)
+
+    def yearly_counts(self, **filters):
+        self.calls.append(filters)
+        return [(2022, 3), (2024, 7)]
+
 
 class FakeSpeciesRepository:
     def __init__(self):
@@ -164,6 +172,50 @@ class APITests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(self.occurrence_repository.calls, [])
+
+    async def test_occurrence_temporal_extent_uses_species_and_region(self):
+        response = await self.client.get(
+            "/api/v1/occurrences/temporal-extent",
+            params={
+                "species_id": 10,
+                "region_slug": "pyrenees",
+                "region_version": 1,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["observed_from"], "1998-04-03T00:00:00")
+        self.assertEqual(
+            response.json()["observed_until"],
+            "2024-11-08T14:30:00",
+        )
+        filters = self.occurrence_repository.calls[0]
+        self.assertEqual(filters["species_id"], 10)
+        self.assertTrue(filters["region_geometry_wkt"].startswith("POLYGON"))
+
+    async def test_occurrence_yearly_counts_use_species_and_region(self):
+        response = await self.client.get(
+            "/api/v1/occurrences/yearly-counts",
+            params={
+                "species_id": 10,
+                "region_slug": "pyrenees",
+                "region_version": 1,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "items": [
+                    {"year": 2022, "count": 3},
+                    {"year": 2024, "count": 7},
+                ]
+            },
+        )
+        filters = self.occurrence_repository.calls[0]
+        self.assertEqual(filters["species_id"], 10)
+        self.assertTrue(filters["region_geometry_wkt"].startswith("POLYGON"))
 
     async def test_list_species_returns_a_searchable_paginated_result(self):
         response = await self.client.get(

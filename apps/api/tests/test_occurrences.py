@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 from unittest.mock import patch
 
 from coupis.gbif import GBIFOccurrenceClient, GbifOccurrence
@@ -16,6 +17,27 @@ class FakeOccurrencesAPI:
 
 
 class GBIFOccurrenceClientTests(unittest.TestCase):
+    def test_event_dates_are_normalized_to_utc_naive_interval_starts(self):
+        interval = GbifOccurrence.from_gbif_record(
+            {
+                "key": 1,
+                "decimalLatitude": 42.7,
+                "decimalLongitude": 0.5,
+                "eventDate": "2024-05-02T12:30:00+02:00/2024-05-02T13:00:00+02:00",
+            }
+        )
+        partial = GbifOccurrence.from_gbif_record(
+            {
+                "key": 2,
+                "decimalLatitude": 42.8,
+                "decimalLongitude": 0.6,
+                "eventDate": "1998-04",
+            }
+        )
+
+        self.assertEqual(interval.event_date, datetime(2024, 5, 2, 10, 30))
+        self.assertEqual(partial.event_date, datetime(1998, 4, 1))
+
     def test_search_maps_records_and_paginates(self):
         api = FakeOccurrencesAPI(
             [

@@ -21,7 +21,7 @@ import type { Region } from "@/features/regions/types";
 const DEFAULT_CENTER: [number, number] = [5, 46.5];
 const DEFAULT_ZOOM = 4.5;
 
-setWorkerUrl("/maplibre-gl-csp-worker.js");
+setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
 type ExplorerMapProps = {
   occurrences: readonly Occurrence[];

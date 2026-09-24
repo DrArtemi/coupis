@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from datetime import datetime
 
 from geoalchemy2.elements import WKTElement
-from sqlalchemy import func, select
+from sqlalchemy import Integer, cast, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -99,6 +99,52 @@ class OccurrenceRepository:
             .offset(offset)
         )
         return list(self.session.scalars(statement)), int(total or 0)
+
+    def temporal_extent(
+        self,
+        *,
+        species_id: int,
+        region_geometry_wkt: str,
+    ) -> tuple[datetime | None, datetime | None]:
+        """Return the first and last dated observations for a selection."""
+        region_geometry = func.ST_GeomFromText(region_geometry_wkt, 4326)
+        statement = select(
+            func.min(Occurrence.observed_at),
+            func.max(Occurrence.observed_at),
+        ).where(
+            Occurrence.species_id == species_id,
+            func.ST_Covers(region_geometry, Occurrence.geom),
+            Occurrence.observed_at.is_not(None),
+        )
+        row = self.session.execute(statement).one()
+        return row[0], row[1]
+
+    def yearly_counts(
+        self,
+        *,
+        species_id: int,
+        region_geometry_wkt: str,
+    ) -> list[tuple[int, int]]:
+        """Count dated observations per calendar year for a selection."""
+        region_geometry = func.ST_GeomFromText(region_geometry_wkt, 4326)
+        year = cast(
+            func.extract("year", Occurrence.observed_at),
+            Integer,
+        ).label("year")
+        statement = (
+            select(year, func.count())
+            .where(
+                Occurrence.species_id == species_id,
+                func.ST_Covers(region_geometry, Occurrence.geom),
+                Occurrence.observed_at.is_not(None),
+            )
+            .group_by(year)
+            .order_by(year)
+        )
+        return [
+            (int(row[0]), int(row[1]))
+            for row in self.session.execute(statement)
+        ]
 
     @staticmethod
     def _values(
