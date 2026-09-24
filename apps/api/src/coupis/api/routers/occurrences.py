@@ -7,11 +7,31 @@ from coupis.api.dependencies import (
     OccurrenceRepositoryDependency,
     RegionCatalogDependency,
 )
-from coupis.api.schemas import OccurrencePageResponse, OccurrenceResponse
-from coupis.regions import RegionNotFoundError
+from coupis.api.schemas import (
+    OccurrencePageResponse,
+    OccurrenceResponse,
+    OccurrenceTemporalExtentResponse,
+    OccurrenceYearCountResponse,
+    OccurrenceYearlyCountsResponse,
+)
+from coupis.regions import RegionCatalog, RegionNotFoundError
 
 
 router = APIRouter(prefix="/occurrences", tags=["occurrences"])
+
+
+def _region_geometry_wkt(
+    region_catalog: RegionCatalog,
+    region_slug: str,
+    region_version: int | None,
+) -> str:
+    try:
+        return region_catalog.get(region_slug, region_version).geometry_wkt
+    except RegionNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error.args[0],
+        ) from error
 
 
 def _parse_bbox(value: str | None) -> tuple[float, float, float, float] | None:
@@ -40,6 +60,58 @@ def _parse_bbox(value: str | None) -> tuple[float, float, float, float] | None:
             ),
         )
     return west, south, east, north
+
+
+@router.get(
+    "/temporal-extent",
+    response_model=OccurrenceTemporalExtentResponse,
+)
+async def get_occurrence_temporal_extent(
+    repository: OccurrenceRepositoryDependency,
+    region_catalog: RegionCatalogDependency,
+    species_id: Annotated[int, Query(ge=1)],
+    region_slug: str,
+    region_version: Annotated[int | None, Query(ge=1)] = None,
+) -> OccurrenceTemporalExtentResponse:
+    observed_from, observed_until = repository.temporal_extent(
+        species_id=species_id,
+        region_geometry_wkt=_region_geometry_wkt(
+            region_catalog,
+            region_slug,
+            region_version,
+        ),
+    )
+    return OccurrenceTemporalExtentResponse(
+        observed_from=observed_from,
+        observed_until=observed_until,
+    )
+
+
+@router.get(
+    "/yearly-counts",
+    response_model=OccurrenceYearlyCountsResponse,
+)
+async def get_occurrence_yearly_counts(
+    repository: OccurrenceRepositoryDependency,
+    region_catalog: RegionCatalogDependency,
+    species_id: Annotated[int, Query(ge=1)],
+    region_slug: str,
+    region_version: Annotated[int | None, Query(ge=1)] = None,
+) -> OccurrenceYearlyCountsResponse:
+    rows = repository.yearly_counts(
+        species_id=species_id,
+        region_geometry_wkt=_region_geometry_wkt(
+            region_catalog,
+            region_slug,
+            region_version,
+        ),
+    )
+    return OccurrenceYearlyCountsResponse(
+        items=[
+            OccurrenceYearCountResponse(year=year, count=count)
+            for year, count in rows
+        ]
+    )
 
 
 @router.get("", response_model=OccurrencePageResponse)
@@ -78,16 +150,11 @@ async def list_occurrences(
             detail="observed_from must be before or equal to observed_until",
         )
 
-    region_geometry_wkt = None
-    if region_slug is not None:
-        try:
-            region = region_catalog.get(region_slug, region_version)
-        except RegionNotFoundError as error:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=error.args[0],
-            ) from error
-        region_geometry_wkt = region.geometry_wkt
+    region_geometry_wkt = (
+        _region_geometry_wkt(region_catalog, region_slug, region_version)
+        if region_slug is not None
+        else None
+    )
 
     items, total = repository.search(
         species_id=species_id,

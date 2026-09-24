@@ -21,6 +21,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/occurrences/temporal-extent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Occurrence Temporal Extent */
+        get: operations["get_occurrence_temporal_extent_api_v1_occurrences_temporal_extent_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/occurrences/yearly-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Occurrence Yearly Counts */
+        get: operations["get_occurrence_yearly_counts_api_v1_occurrences_yearly_counts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/occurrences": {
         parameters: {
             query?: never;
@@ -169,6 +203,25 @@ export interface components {
             /** Issues */
             issues: string[] | null;
         };
+        /** OccurrenceTemporalExtentResponse */
+        OccurrenceTemporalExtentResponse: {
+            /** Observed From */
+            observed_from: string | null;
+            /** Observed Until */
+            observed_until: string | null;
+        };
+        /** OccurrenceYearCountResponse */
+        OccurrenceYearCountResponse: {
+            /** Year */
+            year: number;
+            /** Count */
+            count: number;
+        };
+        /** OccurrenceYearlyCountsResponse */
+        OccurrenceYearlyCountsResponse: {
+            /** Items */
+            items: components["schemas"]["OccurrenceYearCountResponse"][];
+        };
         /** RegionDetailResponse */
         RegionDetailResponse: {
             /** Slug */
@@ -261,6 +314,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    get_occurrence_temporal_extent_api_v1_occurrences_temporal_extent_get: {
+        parameters: {
+            query: {
+                species_id: number;
+                region_slug: string;
+                region_version?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccurrenceTemporalExtentResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_occurrence_yearly_counts_api_v1_occurrences_yearly_counts_get: {
+        parameters: {
+            query: {
+                species_id: number;
+                region_slug: string;
+                region_version?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccurrenceYearlyCountsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

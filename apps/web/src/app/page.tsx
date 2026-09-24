@@ -9,7 +9,7 @@ export default function Home() {
             Biodiversity explorer
           </h1>
           <p className="text-muted-foreground">
-            Explore observations by species and region.
+            Explore observations by species, region and time period.
           </p>
         </header>
 

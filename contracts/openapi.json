@@ -27,6 +27,144 @@
         }
       }
     },
+    "/api/v1/occurrences/temporal-extent": {
+      "get": {
+        "tags": [
+          "occurrences"
+        ],
+        "summary": "Get Occurrence Temporal Extent",
+        "operationId": "get_occurrence_temporal_extent_api_v1_occurrences_temporal_extent_get",
+        "parameters": [
+          {
+            "name": "species_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Species Id"
+            }
+          },
+          {
+            "name": "region_slug",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Region Slug"
+            }
+          },
+          {
+            "name": "region_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OccurrenceTemporalExtentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/occurrences/yearly-counts": {
+      "get": {
+        "tags": [
+          "occurrences"
+        ],
+        "summary": "Get Occurrence Yearly Counts",
+        "operationId": "get_occurrence_yearly_counts_api_v1_occurrences_yearly_counts_get",
+        "parameters": [
+          {
+            "name": "species_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Species Id"
+            }
+          },
+          {
+            "name": "region_slug",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Region Slug"
+            }
+          },
+          {
+            "name": "region_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OccurrenceYearlyCountsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/occurrences": {
       "get": {
         "tags": [
@@ -753,6 +891,75 @@
           "issues"
         ],
         "title": "OccurrenceResponse"
+      },
+      "OccurrenceTemporalExtentResponse": {
+        "properties": {
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Until"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observed_from",
+          "observed_until"
+        ],
+        "title": "OccurrenceTemporalExtentResponse"
+      },
+      "OccurrenceYearCountResponse": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "count"
+        ],
+        "title": "OccurrenceYearCountResponse"
+      },
+      "OccurrenceYearlyCountsResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OccurrenceYearCountResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "OccurrenceYearlyCountsResponse"
       },
       "RegionDetailResponse": {
         "properties": {

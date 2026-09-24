@@ -1,4 +1,5 @@
-from datetime import datetime
+import re
+from datetime import UTC, date, datetime, time
 from typing import Any
 from uuid import UUID
 
@@ -93,10 +94,28 @@ class GbifOccurrence(BaseModel):
     @field_validator("event_date", mode="before")
     @classmethod
     def parse_event_date(cls, value):
-        # We only want to keep the beginning of the observation
-        if isinstance(value, str) and "/" in value:
-            value = value.split("/", maxsplit=1)[0]
-        return value
+        """Normalize GBIF dates to a UTC-naive interval start for Postgres."""
+        if value in (None, ""):
+            return None
+        if isinstance(value, datetime):
+            parsed = value
+        elif isinstance(value, date):
+            parsed = datetime.combine(value, time.min)
+        elif isinstance(value, str):
+            interval_start = value.split("/", maxsplit=1)[0].strip()
+            if re.fullmatch(r"\d{4}", interval_start):
+                interval_start = f"{interval_start}-01-01"
+            elif re.fullmatch(r"\d{4}-\d{2}", interval_start):
+                interval_start = f"{interval_start}-01"
+            parsed = datetime.fromisoformat(
+                interval_start.replace("Z", "+00:00")
+            )
+        else:
+            return value
+
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone(UTC).replace(tzinfo=None)
+        return parsed
 
 
 class GBIFOccurrenceClient:

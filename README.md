@@ -158,6 +158,25 @@ GET /api/v1/occurrences?gbif_taxon_key=2473577&region_slug=pyrenees&limit=100
 The response contains `items`, `total`, `limit`, and `offset`. Region and
 bounding-box filters use the PostGIS occurrence geometry.
 
+The explorer obtains the available time range for a species and region from:
+
+```text
+GET /api/v1/occurrences/temporal-extent?species_id=1&region_slug=pyrenees
+```
+
+The response contains the earliest and latest dated observations as
+`observed_from` and `observed_until`. Occurrences without an observation date
+are excluded from this aggregation.
+
+The temporal histogram uses exact database-side annual counts:
+
+```text
+GET /api/v1/occurrences/yearly-counts?species_id=1&region_slug=pyrenees
+```
+
+Missing calendar years are filled with zero by the web client so the chart
+keeps a continuous time axis.
+
 ### Listing stored species
 
 `GET /api/v1/species` returns a paginated list of species already stored in
