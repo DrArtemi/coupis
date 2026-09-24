@@ -1,7 +1,30 @@
+# Python bytecode and tooling
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.env
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Python environments and packaging
+.venv/
+venv/
+env/
 *.egg-info/
 build/
 dist/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# OS and editor artifacts
+.DS_Store
+*.swp
+*.swo
+*~
